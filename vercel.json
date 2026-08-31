@@ -21,10 +21,13 @@
       "destination": { "service": "backend" }
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "source": "/(.*)",
       "destination": {
         "service": "frontend",
-        "path": "/index.html"
+        "path": "index.html"
       }
     }
   ]

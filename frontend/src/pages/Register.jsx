@@ -70,13 +70,19 @@ export default function Register() {
       }
     } catch (err) {
       const emailErr = err?.response?.data?.email?.[0];
+      const usernameErr = err?.response?.data?.username?.[0];
       const pwdErr = err?.response?.data?.password?.[0];
       const detailErr = err?.response?.data?.detail;
+      const statusErr = err?.response?.status
+        ? `Server error ${err.response.status}. Please try again after the latest deployment finishes.`
+        : "";
 
       const msg =
+        usernameErr ||
         pwdErr ||
         emailErr ||
         detailErr ||
+        statusErr ||
         "Could not create account. Please check the entered information.";
       setError(msg);
     } finally {

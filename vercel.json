@@ -21,9 +21,6 @@
       "destination": { "service": "backend" }
     },
     {
-      "handle": "filesystem"
-    },
-    {
       "source": "/(.*)",
       "destination": {
         "service": "frontend",

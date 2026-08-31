@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 import dj_database_url
 
@@ -34,7 +35,7 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-allowed_hosts = ['localhost', '127.0.0.1', '0.0.0.0']
+allowed_hosts = ['localhost', '127.0.0.1', '0.0.0.0', '.vercel.app']
 for host in os.getenv('ALLOWED_HOSTS', '').split(','):
     host = host.strip()
     if host:
@@ -43,6 +44,11 @@ for host in os.getenv('ALLOWED_HOSTS', '').split(','):
 vercel_host = os.getenv('VERCEL_URL')
 if vercel_host:
     allowed_hosts.append(vercel_host)
+
+frontend_url = os.getenv('FRONTEND_URL')
+if frontend_url:
+    frontend_host = urlparse(frontend_url).netloc or frontend_url
+    allowed_hosts.append(frontend_host)
 
 ALLOWED_HOSTS = allowed_hosts
 
@@ -86,7 +92,6 @@ cors_origins = [
     'http://localhost:3000',
     'http://10.169.235.240:5173',
 ]
-frontend_url = os.getenv('FRONTEND_URL')
 if frontend_url:
     cors_origins.append(frontend_url)
 
@@ -101,6 +106,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:5173',
     'http://10.169.235.240:5173',
+    'https://*.vercel.app',
 ]
 if frontend_url:
     CSRF_TRUSTED_ORIGINS.append(frontend_url)

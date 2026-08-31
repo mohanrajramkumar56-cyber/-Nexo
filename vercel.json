@@ -7,7 +7,8 @@
     },
     "backend": {
       "root": "backend",
-      "entrypoint": "config.wsgi:application"
+      "entrypoint": "config.wsgi:application",
+      "buildCommand": "python manage.py migrate --noinput"
     }
   },
   "rewrites": [

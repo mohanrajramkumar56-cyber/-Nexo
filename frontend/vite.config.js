@@ -8,8 +8,4 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
-  build: {
-    outDir: '../backend/static_root',
-    emptyOutDir: true,
-  },
 })

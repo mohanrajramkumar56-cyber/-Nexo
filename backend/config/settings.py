@@ -12,19 +12,27 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Local development may use backend/.env. Vercel supplies these values through
+# its encrypted environment-variable settings instead.
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-$f86+e5zok*(=posx*sk4&bcx-3jlbxh(4(mmg3q0t95s2d(s0')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise RuntimeError('SECRET_KEY must be set.')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 allowed_hosts = ['localhost', '127.0.0.1', '0.0.0.0']
 for host in os.getenv('ALLOWED_HOSTS', '').split(','):
@@ -134,10 +142,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -177,6 +186,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static_root']
+STATIC_ROOT = BASE_DIR / 'collected_static'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Media files (user uploads)
 MEDIA_URL = '/media/'
@@ -184,10 +195,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Email Configuration (Supports Gmail SMTP & Console Fallback)
-from dotenv import load_dotenv
-
-# Load .env file from the backend directory
-load_dotenv(BASE_DIR / '.env')
 
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')

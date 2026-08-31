@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,14 +21,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$f86+e5zok*(=posx*sk4&bcx-3jlbxh(4(mmg3q0t95s2d(s0'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-$f86+e5zok*(=posx*sk4&bcx-3jlbxh(4(mmg3q0t95s2d(s0')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+allowed_hosts = ['localhost', '127.0.0.1', '0.0.0.0']
+for host in os.getenv('ALLOWED_HOSTS', '').split(','):
+    host = host.strip()
+    if host:
+        allowed_hosts.append(host)
 
+vercel_host = os.getenv('VERCEL_URL')
+if vercel_host:
+    allowed_hosts.append(vercel_host)
 
+ALLOWED_HOSTS = allowed_hosts
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 # Application definition
 
@@ -60,14 +73,32 @@ MIDDLEWARE = [
 
 AUTH_USER_MODEL = 'users.User'
 
-CORS_ALLOWED_ORIGINS = [
+cors_origins = [
     'http://localhost:5173',
     'http://localhost:3000',
     'http://10.169.235.240:5173',
 ]
+frontend_url = os.getenv('FRONTEND_URL')
+if frontend_url:
+    cors_origins.append(frontend_url)
+
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys(cors_origins))
+CORS_ALLOWED_ORIGIN_REGEXES = [r'^https://.*\.vercel\.app$']
 
 # Allow any origin during LAN development
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://10.169.235.240:5173',
+]
+if frontend_url:
+    CSRF_TRUSTED_ORIGINS.append(frontend_url)
+if vercel_host:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{vercel_host}')
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -153,7 +184,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Email Configuration (Supports Gmail SMTP & Console Fallback)
-import os
 from dotenv import load_dotenv
 
 # Load .env file from the backend directory

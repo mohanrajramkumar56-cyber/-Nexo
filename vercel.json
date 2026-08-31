@@ -9,7 +9,7 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "backend/static_root"
+        "distDir": "../backend/static_root"
       }
     }
   ],
@@ -23,12 +23,11 @@
       "dest": "backend/config/wsgi.py"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "backend/static_root/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "backend/static_root/index.html"
+      "dest": "/index.html"
     }
   ]
 }

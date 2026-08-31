@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 
 from .models import EmailVerificationCode, Notification
 from .utils import (
@@ -10,6 +11,12 @@ from .utils import (
 )
 
 User = get_user_model()
+
+
+class EmailDeliveryError(APIException):
+    status_code = 503
+    default_detail = "We could not send a verification email. Please try again later."
+    default_code = "email_delivery_failed"
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -112,9 +119,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         if not email_sent:
             # Do not leave an unusable inactive account behind when SMTP fails.
             user.delete()
-            raise serializers.ValidationError(
-                {"email": "We could not send a verification email. Please try again later."}
-            )
+            raise EmailDeliveryError()
 
         return user
 

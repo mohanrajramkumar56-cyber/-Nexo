@@ -1,8 +1,11 @@
 import random
 import re
 import socket
+import logging
 from django.conf import settings
 from django.core.mail import send_mail
+
+logger = logging.getLogger(__name__)
 
 # Blocklist of popular disposable / temporary email domains
 DISPOSABLE_DOMAINS = {
@@ -164,8 +167,10 @@ The NEXO Team
             server.sendmail(from_email, [email], msg.as_string())
 
         return True
-    except Exception as e:
-        print(f"[Email Dispatch Error]: {e}")
+    except Exception:
+        # Vercel Runtime Logs capture this traceback, while the API returns a
+        # safe generic message to users without exposing SMTP credentials.
+        logger.exception("[Email Dispatch Error] Verification email delivery failed")
         return False
 
 

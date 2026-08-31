@@ -12,6 +12,28 @@
       "buildCommand": "python manage.py migrate --noinput"
     }
   },
+  "redirects": [
+    {
+      "source": "/login",
+      "destination": "/#/login",
+      "permanent": false
+    },
+    {
+      "source": "/register",
+      "destination": "/#/register",
+      "permanent": false
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/#/dashboard",
+      "permanent": false
+    },
+    {
+      "source": "/projects/:path*",
+      "destination": "/#/projects/:path*",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

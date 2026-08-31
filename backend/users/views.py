@@ -138,12 +138,26 @@ class ResendCodeView(APIView):
             code=code,
             purpose=purpose,
         )
-        send_verification_email(
+        email_sent = send_verification_email(
             email=email,
             code=code,
             purpose=purpose,
             username=user.username if user else "",
         )
+
+        if not email_sent:
+            EmailVerificationCode.objects.filter(
+                email__iexact=email,
+                code=code,
+                purpose=purpose,
+                is_used=False,
+            ).delete()
+            return Response(
+                {
+                    "detail": "We could not send the verification email. Please try again later."
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         return Response(
             {
@@ -232,12 +246,24 @@ class VerifyEmailView(APIView):
             code=code,
             purpose="PASSWORD_RESET",
         )
-        send_verification_email(
+        email_sent = send_verification_email(
             email=user.email,
             code=code,
             purpose="PASSWORD_RESET",
             username=user.username,
         )
+
+        if not email_sent:
+            EmailVerificationCode.objects.filter(
+                email__iexact=user.email,
+                code=code,
+                purpose="PASSWORD_RESET",
+                is_used=False,
+            ).delete()
+            return Response(
+                {"detail": "We could not send the password reset email. Please try again later."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         return Response(
             {

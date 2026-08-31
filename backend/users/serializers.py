@@ -103,12 +103,18 @@ class RegisterSerializer(serializers.ModelSerializer):
             code=code,
             purpose="REGISTRATION",
         )
-        send_verification_email(
+        email_sent = send_verification_email(
             email=user.email,
             code=code,
             purpose="REGISTRATION",
             username=user.username,
         )
+        if not email_sent:
+            # Do not leave an unusable inactive account behind when SMTP fails.
+            user.delete()
+            raise serializers.ValidationError(
+                {"email": "We could not send a verification email. Please try again later."}
+            )
 
         return user
 

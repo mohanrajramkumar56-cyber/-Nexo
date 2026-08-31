@@ -149,10 +149,8 @@ The NEXO Team
         msg.attach(MIMEText(message, "plain"))
         msg.attach(MIMEText(html_message, "html"))
 
-        # Connect with TLS but skip cert verification (fixes Windows SSL chain issue)
+        # Use verified TLS for SMTP in production.
         context = ssl.create_default_context()
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
 
         host = getattr(settings, "EMAIL_HOST", "smtp.gmail.com")
         port = getattr(settings, "EMAIL_PORT", 587)

@@ -119,7 +119,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         if not email_sent:
             # Do not leave an unusable inactive account behind when SMTP fails.
             user.delete()
-            raise EmailDeliveryError()
+            raise EmailDeliveryError(detail=email_sent.reason)
 
         return user
 

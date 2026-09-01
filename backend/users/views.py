@@ -154,7 +154,7 @@ class ResendCodeView(APIView):
             ).delete()
             return Response(
                 {
-                    "detail": "We could not send the verification email. Please try again later."
+                    "detail": email_sent.reason
                 },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
@@ -261,7 +261,7 @@ class VerifyEmailView(APIView):
                 is_used=False,
             ).delete()
             return Response(
-                {"detail": "We could not send the password reset email. Please try again later."},
+                {"detail": email_sent.reason},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 

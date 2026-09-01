@@ -2,10 +2,23 @@ import random
 import re
 import socket
 import logging
+import smtplib
+from dataclasses import dataclass
 from django.conf import settings
 from django.core.mail import send_mail
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class EmailDeliveryResult:
+    """Safe mail-delivery outcome for API responses and logs."""
+
+    sent: bool
+    reason: str = ""
+
+    def __bool__(self):
+        return self.sent
 
 # Blocklist of popular disposable / temporary email domains
 DISPOSABLE_DOMAINS = {
@@ -86,7 +99,7 @@ def generate_otp_code(length: int = 6) -> str:
     return "".join([str(random.randint(0, 9)) for _ in range(length)])
 
 
-def send_verification_email(email: str, code: str, purpose: str = "REGISTRATION", username: str = "") -> bool:
+def send_verification_email(email: str, code: str, purpose: str = "REGISTRATION", username: str = "") -> EmailDeliveryResult:
     """
     Dispatches a formatted verification email with the 6-digit OTP code.
     Uses Django's send_mail (console backend in dev, SMTP in prod).
@@ -140,7 +153,6 @@ The NEXO Team
 
     try:
         import ssl
-        import smtplib
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
 
@@ -166,12 +178,33 @@ The NEXO Team
             server.login(user, password)
             server.sendmail(from_email, [email], msg.as_string())
 
-        return True
+        return EmailDeliveryResult(sent=True)
+    except smtplib.SMTPAuthenticationError:
+        logger.exception("[Email Dispatch Error] Gmail rejected SMTP authentication")
+        return EmailDeliveryResult(
+            sent=False,
+            reason="The email sender could not sign in to Gmail. The app owner must set EMAIL_HOST_PASSWORD to a current 16-character Google App Password.",
+        )
+    except (smtplib.SMTPConnectError, TimeoutError, OSError):
+        logger.exception("[Email Dispatch Error] SMTP connection failed")
+        return EmailDeliveryResult(
+            sent=False,
+            reason="The email service could not connect to Gmail. Please try again later.",
+        )
+    except smtplib.SMTPRecipientsRefused:
+        logger.exception("[Email Dispatch Error] Recipient address was rejected")
+        return EmailDeliveryResult(
+            sent=False,
+            reason="Gmail rejected this recipient address. Please check the email address and try again.",
+        )
     except Exception:
         # Vercel Runtime Logs capture this traceback, while the API returns a
         # safe generic message to users without exposing SMTP credentials.
         logger.exception("[Email Dispatch Error] Verification email delivery failed")
-        return False
+        return EmailDeliveryResult(
+            sent=False,
+            reason="The email service could not send the verification message. Please try again later.",
+        )
 
 
 def send_assignment_email(assignee_email: str, assignee_username: str, issue_title: str,

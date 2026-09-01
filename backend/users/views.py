@@ -93,7 +93,7 @@ class VerifyCodeView(APIView):
                     "verified": True,
                     "token": token.key,
                     "user": UserSerializer(user).data,
-                    "detail": "Email successfully verified! Welcome to Jira Software.",
+                    "detail": "Email successfully verified! Welcome to NEXO Software.",
                 },
                 status=status.HTTP_200_OK,
             )

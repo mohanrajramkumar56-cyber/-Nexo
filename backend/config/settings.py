@@ -211,9 +211,9 @@ if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
     EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
     EMAIL_USE_TLS = True
-    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'Jira Software <{EMAIL_HOST_USER}>')
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'NEXO Software <{EMAIL_HOST_USER}>')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = 'Jira Software <noreply@jira-software.local>'
+    DEFAULT_FROM_EMAIL = 'NEXO Software <noreply@nexo.local>'
 
 
